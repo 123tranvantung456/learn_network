@@ -1,4 +1,4 @@
-package com.javaweb.Bai1;
+package com.javaweb.Bai2;
 
 import java.io.*;
 import java.net.Socket;
@@ -15,15 +15,11 @@ public class Client {
 
             while (true) {
                 Scanner sc = new Scanner(System.in);
-                System.out.print("Enter String: ");
+                System.out.print("Enter : ");
                 String str = sc.nextLine();
                 out.println(str);
-
-                for (int i = 0; i < 11; i++) {
-                    String response = in.readLine();
-                    System.out.println(response);
-                }
-                //in.readLine() : tra ve null neu dong luong xuat o server
+                String resp = in.readLine();
+                System.out.println(resp);
             }
         } catch (IOException e) {
             e.printStackTrace();
