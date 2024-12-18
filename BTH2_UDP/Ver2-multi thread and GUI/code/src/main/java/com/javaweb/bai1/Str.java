@@ -1,4 +1,4 @@
-package com.javaweb.bai1.string;
+package com.javaweb.bai1;
 
 import java.util.HashMap;
 import java.util.Map;

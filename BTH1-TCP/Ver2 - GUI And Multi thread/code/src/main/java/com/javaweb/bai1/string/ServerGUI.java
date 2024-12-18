@@ -117,24 +117,48 @@ public class ServerGUI {
                 while ((receiveString = reader.readLine()) != null) {
                     textArea.append("Received from " + clientInfo + ": " + receiveString + "\n");
 
+// Đảo chuỗi
                     String reversedString = Str.reverseString(receiveString);
-                    String upperCaseString = Str.toUpperCase(receiveString);
-                    String lowerCaseString = Str.toLowerCase(receiveString);
-                    String mixedCaseString = Str.mixCase(receiveString);
-                    int wordCount = Str.countWords(receiveString);
-                    Map<Character, Integer> vowels = Str.countVowels(receiveString);
 
+// Chuyển đổi chuỗi thành chữ in hoa
+                    String upperCaseString = Str.toUpperCase(receiveString);
+
+// Chuyển đổi chuỗi thành chữ in thường
+                    String lowerCaseString = Str.toLowerCase(receiveString);
+
+// Chuyển đổi chuỗi thành chữ cái mix
+                    String mixedCaseString = Str.mixCase(receiveString);
+
+// Đếm số từ trong chuỗi
+                    int wordCount = Str.countWords(receiveString);
+
+// Đếm số lần xuất hiện của các nguyên âm
+                    Map<Character, Integer> vowels = Str.countVowels(receiveString);
                     StringBuilder vowelStr = new StringBuilder();
                     for (Map.Entry<Character, Integer> entry : vowels.entrySet()) {
                         vowelStr.append("vowel: ").append(entry.getKey()).append(" : ").append(entry.getValue()).append("\n");
                     }
 
+// Đảo vị trí các từ trong chuỗi
+                    String reversedWord = Str.reverseWords(receiveString);
+
+// Đếm số lần xuất hiện của các từ trùng lặp
+                    Map<String, Integer> duplicateWords = Str.countDuplicateWords(receiveString);
+                    StringBuilder duplicateWordStr = new StringBuilder();
+                    for (Map.Entry<String, Integer> entry : duplicateWords.entrySet()) {
+                        duplicateWordStr.append("word: ").append(entry.getKey()).append(" : ").append(entry.getValue()).append(", ");
+                    }
+
+// Gửi các kết quả về cho client
                     writer.println("reversedString: " + reversedString
                             + "\nupperCaseString: " + upperCaseString
                             + "\nlowerCaseString: " + lowerCaseString
                             + "\nmixedCaseString: " + mixedCaseString
                             + "\nwordCount: " + wordCount
+                            + "\nreversedWords: " + reversedWord
+                            + "\n" + duplicateWordStr
                             + "\n" + vowelStr
+
                     );
                 }
             } catch (IOException e) {

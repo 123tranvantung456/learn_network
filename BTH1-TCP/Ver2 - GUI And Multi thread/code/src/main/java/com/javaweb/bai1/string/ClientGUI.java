@@ -130,13 +130,11 @@ public class ClientGUI {
                 try {
                     out = new PrintWriter(socket.getOutputStream(), true);
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
                 try {
                     in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
 
@@ -148,7 +146,7 @@ public class ClientGUI {
                 }
                 out.println(request);
                 textArea.append("Request sent to server: " + request + "\n");
-                for (int i = 0; i < 11; i++) {
+                for (int i = 0; i < 13; i++) {
                     String response = null;
                     try {
                         response = in.readLine();
