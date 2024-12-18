@@ -1,6 +1,4 @@
-package com.javaweb.bai2;
-
-import com.javaweb.bai1.Str;
+package com.javaweb.bai3.chat;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,13 +8,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Map;
+import java.util.*;
 
 public class ServerGUI {
     private JFrame frame;
     private JTextField textField;
     private JButton btnStartServer;
     private JTextArea textArea;
+    private static Set<PrintWriter> clientWriters = new HashSet<>();
 
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> {
@@ -81,6 +80,7 @@ public class ServerGUI {
     }
 
     private void startServer(int port) {
+        //chạy phần startServer này trong 1 luồng khác để ko ảnh hưởng tới luồng của swing(ảnh hưởng đến nút btnStartServer)
         new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(port)) {
                 textArea.append("Server started on port " + port + "\n");
@@ -89,6 +89,7 @@ public class ServerGUI {
                     Socket clientSocket = serverSocket.accept();
                     String clientInfo = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
                     textArea.append("Accepted connection from " + clientInfo + "\n");
+                    // mỗi client là 1 luồng
                     new ClientHandler(clientSocket, clientInfo).start();
                 }
             } catch (IOException e) {
@@ -112,13 +113,23 @@ public class ServerGUI {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)
             ) {
+                synchronized (clientWriters) {
+                    clientWriters.add(writer);
+                }
                 String receiveString;
                 while ((receiveString = reader.readLine()) != null) {
                     textArea.append("Received from " + clientInfo + ": " + receiveString + "\n");
 
                     try {
-                        String response = receiveString + " = " + Cal.evaluateExpression(receiveString);
-                        writer.println(response);
+                        synchronized (clientWriters) {
+                            for (PrintWriter it : clientWriters) {
+                                if (it == writer){
+                                    continue;
+                                }
+                                String messageToClient = clientInfo + ": " + receiveString;
+                                it.println(messageToClient);
+                            }
+                        }
                     } catch (Exception e) {
                         String response = "error input";
                         writer.println(response);

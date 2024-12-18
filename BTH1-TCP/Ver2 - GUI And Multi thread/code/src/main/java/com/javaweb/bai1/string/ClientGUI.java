@@ -1,5 +1,4 @@
-package com.javaweb.bai2;
-
+package com.javaweb.bai1.string;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
@@ -17,8 +16,8 @@ import java.net.UnknownHostException;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 
-
 public class ClientGUI {
+
     private JFrame frame;
     private JTextField textField;
     private JButton btnNewButton;
@@ -64,7 +63,7 @@ public class ClientGUI {
         btnNewButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String portText = textField.getText().trim();
-                if (socket != null && !socket.isClosed()) {
+                if(socket != null && !socket.isClosed()) {
                     textArea.append("Error: Already connected to the server. Cannot reconnect. \n");
                     return;
                 }
@@ -149,24 +148,26 @@ public class ClientGUI {
                 }
                 out.println(request);
                 textArea.append("Request sent to server: " + request + "\n");
-                String response = null;
-                try {
-                    response = in.readLine();
-                    textArea.append("Response from server: " + response + "\n");
-                } catch (IOException e1) {
-                    // Lấy thông báo lỗi
-                    String errorMessage = e1.getMessage();
+                for (int i = 0; i < 11; i++) {
+                    String response = null;
+                    try {
+                        response = in.readLine();
+                        textArea.append(response + "\n");
+                    } catch (IOException e1) {
+                        // Lấy thông báo lỗi
+                        String errorMessage = e1.getMessage();
 
-                    // Phân loại lỗi và thêm vào textArea với thông tin server
-                    if ("Connection reset".equals(errorMessage)) {
-                        textArea.append("The connection was reset by the client or server.\n");
-                    } else if ("Broken pipe".equals(errorMessage)) {
-                        textArea.append("Attempted to write to a closed connection.\n");
-                    } else if (errorMessage.contains("timed out")) {
-                        textArea.append("Socket operation timed out.\n");
-                    } else {
-                        // Nếu là lỗi không xác định
-                        textArea.append("Unexpected IOException: " + errorMessage + "\n");
+                        // Phân loại lỗi và thêm vào textArea với thông tin server
+                        if ("Connection reset".equals(errorMessage)) {
+                            textArea.append("The connection was reset by the client or server.\n");
+                        } else if ("Broken pipe".equals(errorMessage)) {
+                            textArea.append("Attempted to write to a closed connection.\n");
+                        } else if (errorMessage.contains("timed out")) {
+                            textArea.append("Socket operation timed out.\n");
+                        } else {
+                            // Nếu là lỗi không xác định
+                            textArea.append("Unexpected IOException: " + errorMessage + "\n");
+                        }
                     }
                 }
             }
@@ -202,3 +203,4 @@ public class ClientGUI {
     }
 
 }
+

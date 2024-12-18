@@ -1,17 +1,17 @@
-package com.javaweb.bai3;
+package com.javaweb.bai1.string;
 
-import com.javaweb.bai2.Cal;
-
+import java.awt.EventQueue;
 import javax.swing.*;
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
 
 public class ServerGUI {
+
     private JFrame frame;
     private JTextField textField;
     private JButton btnStartServer;
@@ -80,6 +80,7 @@ public class ServerGUI {
     }
 
     private void startServer(int port) {
+        //chạy phần startServer này trong 1 luồng khác để ko ảnh hưởng tới luồng của swing(ảnh hưởng đến nút btnStartServer)
         new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(port)) {
                 textArea.append("Server started on port " + port + "\n");
@@ -88,6 +89,7 @@ public class ServerGUI {
                     Socket clientSocket = serverSocket.accept();
                     String clientInfo = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
                     textArea.append("Accepted connection from " + clientInfo + "\n");
+                    // mỗi client là 1 luồng
                     new ClientHandler(clientSocket, clientInfo).start();
                 }
             } catch (IOException e) {
@@ -115,13 +117,25 @@ public class ServerGUI {
                 while ((receiveString = reader.readLine()) != null) {
                     textArea.append("Received from " + clientInfo + ": " + receiveString + "\n");
 
-                    try {
-                        String response = receiveString + " = " + Cal.evaluateExpression(receiveString);
-                        writer.println(response);
-                    } catch (Exception e) {
-                        String response = "error input";
-                        writer.println(response);
+                    String reversedString = Str.reverseString(receiveString);
+                    String upperCaseString = Str.toUpperCase(receiveString);
+                    String lowerCaseString = Str.toLowerCase(receiveString);
+                    String mixedCaseString = Str.mixCase(receiveString);
+                    int wordCount = Str.countWords(receiveString);
+                    Map<Character, Integer> vowels = Str.countVowels(receiveString);
+
+                    StringBuilder vowelStr = new StringBuilder();
+                    for (Map.Entry<Character, Integer> entry : vowels.entrySet()) {
+                        vowelStr.append("vowel: ").append(entry.getKey()).append(" : ").append(entry.getValue()).append("\n");
                     }
+
+                    writer.println("reversedString: " + reversedString
+                            + "\nupperCaseString: " + upperCaseString
+                            + "\nlowerCaseString: " + lowerCaseString
+                            + "\nmixedCaseString: " + mixedCaseString
+                            + "\nwordCount: " + wordCount
+                            + "\n" + vowelStr
+                    );
                 }
             } catch (IOException e) {
                 // Lấy thông báo lỗi
