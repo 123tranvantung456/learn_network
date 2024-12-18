@@ -8,7 +8,7 @@ public class Handle {
         try {
             command = command.trim().toUpperCase();
 
-            if (command.startsWith("CREATE")) {
+            if (command.startsWith("INSERT")) {
                 DatabaseManager.handleCreate(command, out);
             } else if (command.startsWith("SELECT")) {
                 DatabaseManager.handleRead(command, out);

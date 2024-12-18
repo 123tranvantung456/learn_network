@@ -11,7 +11,7 @@ public class DatabaseManager {
             // Tải driver MySQL
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            String url = "jdbc:mysql://localhost:3306/ltm?useSSL=false&serverTimezone=UTC";
+            String url = "jdbc:mysql://localhost:3306/ltm";
             String user = "root";
             String password = "123456";
 
