@@ -1,7 +1,8 @@
-package com.javaweb.bai2.cal;
+package com.javaweb.haTCP.BAITEST;
 
-import javax.swing.*;
-import java.awt.*;
+import com.javaweb.haUDP.BAITEST.HamPhu;
+
+import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,27 +10,47 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+
 public class ServerGUI {
+
+
     private JFrame frame;
     private JTextField textField;
     private JButton btnStartServer;
     private JTextArea textArea;
 
+    /**
+     * Launch the application.
+     */
     public static void main(String[] args) {
-        EventQueue.invokeLater(() -> {
-            try {
-                ServerGUI window = new ServerGUI();
-                window.frame.setVisible(true);
-            } catch (Exception e) {
-                e.printStackTrace();
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    ServerGUI window = new ServerGUI();
+                    window.frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
 
+    /**
+     * Create the application.
+     */
     public ServerGUI() {
         initialize();
     }
 
+    /**
+     * Initialize the contents of the frame.
+     */
     private void initialize() {
         frame = new JFrame();
         frame.setBounds(100, 100, 500, 400);
@@ -76,7 +97,6 @@ public class ServerGUI {
             }
         });
     }
-
     private void startServer(int port) {
         //chạy phần startServer này trong 1 luồng khác để ko ảnh hưởng tới luồng của swing(ảnh hưởng đến nút btnStartServer)
         new Thread(() -> {
@@ -114,15 +134,32 @@ public class ServerGUI {
                 String receiveString;
                 while ((receiveString = reader.readLine()) != null) {
                     textArea.append("Received from " + clientInfo + ": " + receiveString + "\n");
-
-
-
+                    // XU LI
+                    Integer number = null;
+                    String response = "";
                     try {
-                        String response = receiveString + " = " + Cal.evaluateExpression(receiveString);
+                        number = Integer.parseInt(receiveString);
+                    } catch (Exception e) {
+                        response = "Error: Invalid number. Please enter a valid integer.\n";
+                    }
+                    try {
+                        if (number != null) {
+                            int k = HamPhu.getFibonacciPosition(number);
+                            if (k == -1) {
+                                response = "Error: Không phải là số Fibonacci.\n";
+                            } else {
+                                response = "Vị trí của số Fibonacci: " + k + ", ";
+                                java.util.List<Integer> primeList = HamPhu.getPrimeNumbers(number);
+                                if (!primeList.isEmpty()) {
+                                    response += "Các số nguyên tố nhỏ hơn " + number + " là: " + primeList + "\n";
+                                } else {
+                                    response += "Không có số nguyên tố nào nhỏ hơn " + number + ".\n";
+                                }
+                            }
+                        }
                         writer.println(response);
                     } catch (Exception e) {
-                        String response = "error input";
-                        writer.println(response);
+                        writer.println("Error");
                     }
                 }
             } catch (IOException e) {

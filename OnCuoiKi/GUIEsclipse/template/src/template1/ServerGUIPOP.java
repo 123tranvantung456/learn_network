@@ -1,7 +1,6 @@
-package com.javaweb.bai2.cal;
+package template1;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,27 +8,47 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class ServerGUI {
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+
+public class ServerGUIPOP {
+
     private JFrame frame;
     private JTextField textField;
     private JButton btnStartServer;
     private JTextArea textArea;
 
+    /**
+     * Launch the application.
+     */
     public static void main(String[] args) {
-        EventQueue.invokeLater(() -> {
-            try {
-                ServerGUI window = new ServerGUI();
-                window.frame.setVisible(true);
-            } catch (Exception e) {
-                e.printStackTrace();
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                	ServerGUIPOP window = new ServerGUIPOP();
+                    window.frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
 
-    public ServerGUI() {
+    /**
+     * Create the application.
+     */
+    public ServerGUIPOP() {
         initialize();
     }
 
+    /**
+     * Initialize the contents of the frame.
+     */
     private void initialize() {
         frame = new JFrame();
         frame.setBounds(100, 100, 500, 400);
@@ -60,37 +79,39 @@ public class ServerGUI {
         btnStartServer.addActionListener(e -> {
             String portText = textField.getText().trim();
             if (portText.isEmpty()) {
-                textArea.append("Error: Port number cannot be empty.\n");
+                JOptionPane.showMessageDialog(frame, "Error: Port number cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             try {
                 int port = Integer.parseInt(portText);
                 if (port < 1 || port > 65535) {
-                    textArea.append("Error: Port number must be between 1 and 65535.\n");
+                    JOptionPane.showMessageDialog(frame, "Error: Port number must be between 1 and 65535.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 startServer(port);
             } catch (NumberFormatException ex) {
-                textArea.append("Error: Invalid port number. Please enter a valid integer.\n");
+                JOptionPane.showMessageDialog(frame, "Error: Invalid port number. Please enter a valid integer.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     }
 
     private void startServer(int port) {
-        //chạy phần startServer này trong 1 luồng khác để ko ảnh hưởng tới luồng của swing(ảnh hưởng đến nút btnStartServer)
         new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(port)) {
+                JOptionPane.showMessageDialog(frame, "Server started on port " + port, "Info", JOptionPane.INFORMATION_MESSAGE);
                 textArea.append("Server started on port " + port + "\n");
 
                 while (true) {
                     Socket clientSocket = serverSocket.accept();
                     String clientInfo = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
+                    JOptionPane.showMessageDialog(frame, "Accepted connection from " + clientInfo, "Info", JOptionPane.INFORMATION_MESSAGE);
                     textArea.append("Accepted connection from " + clientInfo + "\n");
-                    // mỗi client là 1 luồng
+
                     new ClientHandler(clientSocket, clientInfo).start();
                 }
             } catch (IOException e) {
+                JOptionPane.showMessageDialog(frame, "Error starting server: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 textArea.append("Error starting server: " + e.getMessage() + "\n");
             }
         }).start();
@@ -113,17 +134,11 @@ public class ServerGUI {
             ) {
                 String receiveString;
                 while ((receiveString = reader.readLine()) != null) {
+                    // Log received message in JTextArea
                     textArea.append("Received from " + clientInfo + ": " + receiveString + "\n");
-
-
-
-                    try {
-                        String response = receiveString + " = " + Cal.evaluateExpression(receiveString);
-                        writer.println(response);
-                    } catch (Exception e) {
-                        String response = "error input";
-                        writer.println(response);
-                    }
+                    // Optionally show the message in a pop-up for critical messages
+                    JOptionPane.showMessageDialog(frame, "Received from " + clientInfo + ": " + receiveString, "Message", JOptionPane.INFORMATION_MESSAGE);
+                    // Process the received message here
                 }
             } catch (IOException e) {
                 // Lấy thông báo lỗi
@@ -140,12 +155,14 @@ public class ServerGUI {
                     // Nếu là lỗi không xác định
                     textArea.append("Client " + clientInfo + " - Unexpected IOException: " + errorMessage + "\n");
                 }
-            }
-            finally {
+            } finally {
                 try {
                     clientSocket.close();
+                    // Log closing connection in JTextArea
                     textArea.append("Connection closed for " + clientInfo + "\n");
+                    JOptionPane.showMessageDialog(frame, "Connection closed for " + clientInfo, "Info", JOptionPane.INFORMATION_MESSAGE);
                 } catch (IOException e) {
+                    JOptionPane.showMessageDialog(frame, "Error closing connection for " + clientInfo + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     textArea.append("Error closing connection for " + clientInfo + ": " + e.getMessage() + "\n");
                 }
             }

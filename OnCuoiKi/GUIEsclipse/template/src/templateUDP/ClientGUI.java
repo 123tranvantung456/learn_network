@@ -1,5 +1,4 @@
-package com.javaweb.bai1;
-
+package templateUDP;
 import java.awt.EventQueue;
 import java.net.*;
 import java.nio.charset.StandardCharsets;

@@ -1,12 +1,14 @@
-package com.javaweb.bai1;
+package com.javaweb.haUDP.BAIFIBO;
 
-import java.awt.EventQueue;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.io.IOException;
 import javax.swing.*;
-import java.awt.event.ActionListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 
 public class ClientGUI {
 
@@ -42,7 +44,7 @@ public class ClientGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(null);
 
-        btnNewButton = new JButton("Connect");
+        btnNewButton = new JButton("Port");
         btnNewButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String portText = textField.getText().trim();
@@ -144,6 +146,14 @@ public class ClientGUI {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             socket.receive(receivePacket);
             String response = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
+            if (!response.toUpperCase().startsWith("ERROR")) {
+                btnOk.setEnabled(false);
+                textField_1.setEnabled(false);
+            }
+            if (response.startsWith("Đáp ứng yêu cầu:")) {
+                textField_1.setText("Đáp ứng yêu cầu:");
+                response = response.substring("Đáp ứng yêu cầu:".length()).trim();
+            }
             textArea.append("Response from server: \n" + response + "\n");
         } finally {
             socket.close();

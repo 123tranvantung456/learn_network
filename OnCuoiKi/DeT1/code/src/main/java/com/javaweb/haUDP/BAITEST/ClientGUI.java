@@ -1,4 +1,4 @@
-package com.javaweb.bai1;
+package com.javaweb.haUDP.BAITEST;
 
 import java.awt.EventQueue;
 import java.net.*;
@@ -144,6 +144,10 @@ public class ClientGUI {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             socket.receive(receivePacket);
             String response = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
+            if (!response.toUpperCase().startsWith("ERROR")) {
+                btnOk.setEnabled(false);
+                textField_1.setEnabled(false);
+            }
             textArea.append("Response from server: \n" + response + "\n");
         } finally {
             socket.close();

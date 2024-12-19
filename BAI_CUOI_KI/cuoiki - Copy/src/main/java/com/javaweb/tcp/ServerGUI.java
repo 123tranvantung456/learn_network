@@ -1,20 +1,30 @@
-package com.javaweb.bai2.cal;
+package com.javaweb.tcp;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-
+import java.util.*;
 public class ServerGUI {
+
     private JFrame frame;
     private JTextField textField;
     private JButton btnStartServer;
     private JTextArea textArea;
 
+    private static final Set<String> blackList = new HashSet<>();
+
+    static {
+        blackList.add("192.168.10.100");
+        blackList.add("192.168.10.105");
+//        blackList.add("127.0.0.1");
+    }
+    /**
+     * Launch the application.
+     */
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> {
             try {
@@ -26,10 +36,16 @@ public class ServerGUI {
         });
     }
 
+    /**
+     * Create the application.
+     */
     public ServerGUI() {
         initialize();
     }
 
+    /**
+     * Initialize the contents of the frame.
+     */
     private void initialize() {
         frame = new JFrame();
         frame.setBounds(100, 100, 500, 400);
@@ -78,16 +94,22 @@ public class ServerGUI {
     }
 
     private void startServer(int port) {
-        //chạy phần startServer này trong 1 luồng khác để ko ảnh hưởng tới luồng của swing(ảnh hưởng đến nút btnStartServer)
         new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(port)) {
                 textArea.append("Server started on port " + port + "\n");
 
                 while (true) {
+
                     Socket clientSocket = serverSocket.accept();
                     String clientInfo = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
                     textArea.append("Accepted connection from " + clientInfo + "\n");
-                    // mỗi client là 1 luồng
+                    if (blackList.contains(clientSocket.getInetAddress().getHostAddress())) {
+                        textArea.append("Client này bị chặn vì nằm trong blacklist " + clientInfo + "\n");
+                        textArea.append("Dong ket noi cua: " + clientInfo + "\n");
+                        clientSocket.close();  // Đóng kết nối nếu client bị chặn
+                        continue;  // Không tiếp tục xử lý client này
+                    }
+
                     new ClientHandler(clientSocket, clientInfo).start();
                 }
             } catch (IOException e) {
@@ -97,8 +119,8 @@ public class ServerGUI {
     }
 
     private class ClientHandler extends Thread {
-        private Socket clientSocket;
-        private String clientInfo;
+        private final Socket clientSocket;
+        private final String clientInfo;
 
         public ClientHandler(Socket clientSocket, String clientInfo) {
             this.clientSocket = clientSocket;
@@ -115,39 +137,60 @@ public class ServerGUI {
                 while ((receiveString = reader.readLine()) != null) {
                     textArea.append("Received from " + clientInfo + ": " + receiveString + "\n");
 
-
-
-                    try {
-                        String response = receiveString + " = " + Cal.evaluateExpression(receiveString);
+                    // Handle the received request
+                    String response = "";
+                    if ("Please livestream".equals(receiveString)) {
+                        response = "OK";
                         writer.println(response);
-                    } catch (Exception e) {
-                        String response = "error input";
-                        writer.println(response);
+                    } else {
+                        sendImage(clientSocket);
                     }
                 }
             } catch (IOException e) {
-                // Lấy thông báo lỗi
-                String errorMessage = e.getMessage();
-
-                // Phân loại lỗi và thêm vào textArea với thông tin clientInfo
-                if ("Connection reset".equals(errorMessage)) {
-                    textArea.append("Client " + clientInfo + " - The connection was reset by the client or server.\n");
-                } else if ("Broken pipe".equals(errorMessage)) {
-                    textArea.append("Client " + clientInfo + " - Attempted to write to a closed connection.\n");
-                } else if (errorMessage.contains("timed out")) {
-                    textArea.append("Client " + clientInfo + " - Socket operation timed out.\n");
-                } else {
-                    // Nếu là lỗi không xác định
-                    textArea.append("Client " + clientInfo + " - Unexpected IOException: " + errorMessage + "\n");
-                }
-            }
-            finally {
+                handleClientError(e);
+            } finally {
                 try {
                     clientSocket.close();
                     textArea.append("Connection closed for " + clientInfo + "\n");
                 } catch (IOException e) {
                     textArea.append("Error closing connection for " + clientInfo + ": " + e.getMessage() + "\n");
                 }
+            }
+        }
+
+        private void sendImage(Socket clientSocket) {
+            File imageFile = new File("D:\\Dowloads\\images.jpg");
+            if (!imageFile.exists()) {
+                textArea.append("Image file not found: " + imageFile.getAbsolutePath() + "\n");
+                return;
+            }
+
+            try (BufferedInputStream fileInputStream = new BufferedInputStream(new FileInputStream(imageFile));
+                 OutputStream out = clientSocket.getOutputStream()) {
+
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+                out.flush();
+                textArea.append("Image sent successfully to client.\n");
+
+            } catch (IOException e) {
+                textArea.append("Error sending image: " + e.getMessage() + "\n");
+            }
+        }
+
+        private void handleClientError(IOException e) {
+            String errorMessage = e.getMessage();
+            if ("Connection reset".equals(errorMessage)) {
+                textArea.append("Client " + clientInfo + " - The connection was reset by the client or server.\n");
+            } else if ("Broken pipe".equals(errorMessage)) {
+                textArea.append("Client " + clientInfo + " - Attempted to write to a closed connection.\n");
+            } else if (errorMessage.contains("timed out")) {
+                textArea.append("Client " + clientInfo + " - Socket operation timed out.\n");
+            } else {
+                textArea.append("Client " + clientInfo + " - Unexpected IOException: " + errorMessage + "\n");
             }
         }
     }
